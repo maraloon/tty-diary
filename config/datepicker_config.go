@@ -1,4 +1,4 @@
-package config
+package datepicker_config
 
 import (
 	"github.com/maraloon/datepicker"

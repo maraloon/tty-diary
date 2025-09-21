@@ -129,8 +129,8 @@ func pathToMd(date string) string {
 }
 
 func main() {
-	config := config.ValidateFlags()
-	config.HideHelp = true
+	datepickerConfig := datepicker_config.ValidateFlags()
+	datepickerConfig.HideHelp = true
 
 	colors := make(datepicker.Colors)
 	for _, v := range getDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1) {
@@ -138,7 +138,7 @@ func main() {
 		colors[v] = "#b16286"
 	}
 
-	cal := datepicker.InitModel(config, colors)
+	cal := datepicker.InitModel(datepickerConfig, colors)
 
 	fileForToday := pathToMd(cal.CurrentValue())
 	preview, err := preview.NewModel(fileForToday)
