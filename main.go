@@ -9,6 +9,7 @@ import (
 
 	"tty-diary/keymap"
 	"tty-diary/preview"
+	"tty-diary/config"
 
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
@@ -45,6 +46,8 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case editorFinishedMsg:
 		if fileExistsAndNotEmpty(m.cal.CurrentValue()) {
+			// TODO: use defalul color as one of terminal colors
+			// TODO: config
 			m.cal.Colors[m.cal.CurrentValue()] = "#b16286"
 		}
 
@@ -115,19 +118,23 @@ func fileExistsAndNotEmpty(date string) bool {
 }
 
 func pathToMd(date string) string {
+	// TODO: config
 	diaryDir := os.Getenv("HOME") + "/code/util/notes/diary"
 	if os.Getenv("DIARY_DIR") != "" {
 		diaryDir = os.Getenv("DIARY_DIR")
 	}
+
+	// TODO: to config. file format (maybe someone want to use txt)
 	return filepath.Join(diaryDir, date+".md")
 }
 
 func main() {
-	config := datepicker.DefaultConfig()
+	config := config.ValidateFlags()
 	config.HideHelp = true
 
 	colors := make(datepicker.Colors)
 	for _, v := range getDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1) {
+		// TODO: config
 		colors[v] = "#b16286"
 	}
 
