@@ -46,11 +46,11 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case editorFinishedMsg:
-		if fileExistsAndNotEmpty(m.cal.CurrentValue(), m.config.FileFormat) {
+		if fileExistsAndNotEmpty(m.cal.CurrentValue(), m.config) {
 			m.cal.Colors[m.cal.CurrentValue()] = m.config.NotesColor
 		}
 
-		m.preview.RenderFile(pathToMd(m.cal.CurrentValue(), m.config.FileFormat))
+		m.preview.RenderFile(pathToMd(m.cal.CurrentValue(), m.config))
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "?":
@@ -58,10 +58,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q", "esc":
 			return m, tea.Quit
 		case "enter":
-			return m, openEditor(pathToMd(m.cal.CurrentValue(), m.config.FileFormat))
+			return m, openEditor(pathToMd(m.cal.CurrentValue(), m.config))
 		default:
 			m.cal.Update(msg)
-			m.preview.RenderFile(pathToMd(m.cal.CurrentValue(), m.config.FileFormat))
+			m.preview.RenderFile(pathToMd(m.cal.CurrentValue(), m.config))
 		}
 	}
 	return m, tea.Batch(cmds...)
@@ -84,7 +84,8 @@ func (m mainModel) View() string {
 	return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, s)
 }
 
-func getDatesWithFiles(startYear, endYear int, fileFormat string) []string {
+// TODO: refactor. this 3 methods to module `fileScrapper` with init of dir and file format
+func getDatesWithFiles(startYear, endYear int, config config.Config) []string {
 	var dates []string
 
 	for year := startYear; year <= endYear; year++ {
@@ -93,7 +94,7 @@ func getDatesWithFiles(startYear, endYear int, fileFormat string) []string {
 				UTC).Day()
 			for day := 1; day <= daysInMonth; day++ {
 				date := fmt.Sprintf("%04d/%02d/%02d", year, month, day)
-				if fileExistsAndNotEmpty(date, fileFormat) {
+				if fileExistsAndNotEmpty(date, config) {
 					dates = append(dates, date)
 				}
 			}
@@ -103,8 +104,8 @@ func getDatesWithFiles(startYear, endYear int, fileFormat string) []string {
 	return dates
 }
 
-func fileExistsAndNotEmpty(date, fileFormat string) bool {
-	path := pathToMd(date, fileFormat)
+func fileExistsAndNotEmpty(date string, config config.Config) bool {
+	path := pathToMd(date, config)
 	if _, err := os.Stat(path); err == nil {
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -116,14 +117,8 @@ func fileExistsAndNotEmpty(date, fileFormat string) bool {
 	return false
 }
 
-func pathToMd(date, fileFormat string) string {
-	// TODO: config
-	diaryDir := os.Getenv("HOME") + "/code/util/notes/diary"
-	if os.Getenv("DIARY_DIR") != "" {
-		diaryDir = os.Getenv("DIARY_DIR")
-	}
-
-	return filepath.Join(diaryDir, date+"."+fileFormat)
+func pathToMd(date string, config config.Config) string {
+	return filepath.Join(config.DiaryDir, date+"."+config.FileFormat)
 }
 
 func main() {
@@ -131,13 +126,13 @@ func main() {
 	config.DatepickerConfig.HideHelp = true
 
 	colors := make(datepicker.Colors)
-	for _, v := range getDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1, config.FileFormat) {
+	for _, v := range getDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1, config) {
 		colors[v] = config.NotesColor
 	}
 
 	cal := datepicker.InitModel(config.DatepickerConfig, colors)
 
-	fileForToday := pathToMd(cal.CurrentValue(), config.FileFormat)
+	fileForToday := pathToMd(cal.CurrentValue(), config)
 	preview, err := preview.NewModel(fileForToday)
 	if err != nil {
 		fmt.Println("Could not initialize Bubble Tea model:", err)

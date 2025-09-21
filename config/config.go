@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+
 	"github.com/maraloon/datepicker"
 	"github.com/spf13/pflag"
 )
@@ -20,7 +22,7 @@ func ValidateFlags() Config {
 	var monday bool
 	pflag.StringVar(&notesColor, "color", "6", "Color of dates, which have notes")
 	pflag.StringVar(&fileFormat, "file-format", "md", "Format of note files")
-	pflag.StringVar(&diaryDir, "diary-dir", "/code/util/notes/diary", "Root dir of notes")
+	pflag.StringVar(&diaryDir, "diary-dir", os.Getenv("HOME")+"/code/util/notes/diary", "Root dir of notes")
 	pflag.BoolVarP(&sunday, "sunday", "s", true, "Sunday as first day of week")
 	pflag.BoolVarP(&monday, "monday", "m", false, "Monday as first day of week")
 	pflag.Parse()
@@ -29,9 +31,9 @@ func ValidateFlags() Config {
 	datepickerConfig.FirstWeekdayIsMo = monday || !sunday
 
 	config := Config{
-		NotesColor: notesColor,
-		FileFormat: fileFormat,
-		DiaryDir:   diaryDir,
+		NotesColor:       notesColor,
+		FileFormat:       fileFormat,
+		DiaryDir:         diaryDir,
 		DatepickerConfig: datepickerConfig,
 	}
 
