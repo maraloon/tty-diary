@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"tty-diary/config"
 	"tty-diary/keymap"
 	"tty-diary/preview"
-	"tty-diary/config"
 
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
@@ -22,6 +22,7 @@ type mainModel struct {
 	cal     datepicker.Model
 	preview preview.Model
 	help    help.Model
+	config  config.Config
 }
 
 type editorFinishedMsg struct{ err error }
@@ -45,13 +46,11 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case editorFinishedMsg:
-		if fileExistsAndNotEmpty(m.cal.CurrentValue()) {
-			// TODO: use defalul color as one of terminal colors
-			// TODO: config
-			m.cal.Colors[m.cal.CurrentValue()] = "#b16286"
+		if fileExistsAndNotEmpty(m.cal.CurrentValue(), m.config.FileFormat) {
+			m.cal.Colors[m.cal.CurrentValue()] = m.config.NotesColor
 		}
 
-		m.preview.RenderFile(pathToMd(m.cal.CurrentValue()))
+		m.preview.RenderFile(pathToMd(m.cal.CurrentValue(), m.config.FileFormat))
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "?":
@@ -59,10 +58,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q", "esc":
 			return m, tea.Quit
 		case "enter":
-			return m, openEditor(pathToMd(m.cal.CurrentValue()))
+			return m, openEditor(pathToMd(m.cal.CurrentValue(), m.config.FileFormat))
 		default:
 			m.cal.Update(msg)
-			m.preview.RenderFile(pathToMd(m.cal.CurrentValue()))
+			m.preview.RenderFile(pathToMd(m.cal.CurrentValue(), m.config.FileFormat))
 		}
 	}
 	return m, tea.Batch(cmds...)
@@ -85,7 +84,7 @@ func (m mainModel) View() string {
 	return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, s)
 }
 
-func getDatesWithFiles(startYear, endYear int) []string {
+func getDatesWithFiles(startYear, endYear int, fileFormat string) []string {
 	var dates []string
 
 	for year := startYear; year <= endYear; year++ {
@@ -94,7 +93,7 @@ func getDatesWithFiles(startYear, endYear int) []string {
 				UTC).Day()
 			for day := 1; day <= daysInMonth; day++ {
 				date := fmt.Sprintf("%04d/%02d/%02d", year, month, day)
-				if fileExistsAndNotEmpty(date) {
+				if fileExistsAndNotEmpty(date, fileFormat) {
 					dates = append(dates, date)
 				}
 			}
@@ -104,8 +103,8 @@ func getDatesWithFiles(startYear, endYear int) []string {
 	return dates
 }
 
-func fileExistsAndNotEmpty(date string) bool {
-	path := pathToMd(date)
+func fileExistsAndNotEmpty(date, fileFormat string) bool {
+	path := pathToMd(date, fileFormat)
 	if _, err := os.Stat(path); err == nil {
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -117,30 +116,28 @@ func fileExistsAndNotEmpty(date string) bool {
 	return false
 }
 
-func pathToMd(date string) string {
+func pathToMd(date, fileFormat string) string {
 	// TODO: config
 	diaryDir := os.Getenv("HOME") + "/code/util/notes/diary"
 	if os.Getenv("DIARY_DIR") != "" {
 		diaryDir = os.Getenv("DIARY_DIR")
 	}
 
-	// TODO: to config. file format (maybe someone want to use txt)
-	return filepath.Join(diaryDir, date+".md")
+	return filepath.Join(diaryDir, date+"."+fileFormat)
 }
 
 func main() {
-	datepickerConfig := datepicker_config.ValidateFlags()
-	datepickerConfig.HideHelp = true
+	config := config.ValidateFlags()
+	config.DatepickerConfig.HideHelp = true
 
 	colors := make(datepicker.Colors)
-	for _, v := range getDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1) {
-		// TODO: config
-		colors[v] = "#b16286"
+	for _, v := range getDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1, config.FileFormat) {
+		colors[v] = config.NotesColor
 	}
 
-	cal := datepicker.InitModel(datepickerConfig, colors)
+	cal := datepicker.InitModel(config.DatepickerConfig, colors)
 
-	fileForToday := pathToMd(cal.CurrentValue())
+	fileForToday := pathToMd(cal.CurrentValue(), config.FileFormat)
 	preview, err := preview.NewModel(fileForToday)
 	if err != nil {
 		fmt.Println("Could not initialize Bubble Tea model:", err)
@@ -151,6 +148,7 @@ func main() {
 		cal:     *cal,
 		preview: *preview,
 		help:    cal.Help,
+		config:  config,
 	}
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
