@@ -4,7 +4,9 @@ just date selector with `selected date file preview` and editing it in `$EDITOR`
 
 
 ## TODO:
+- [ ] config file
 - [ ] rewrite my `notes-alarm` bash script to go as `tty-diary-daemon`
+- [ ] write README
 
 
 ---
