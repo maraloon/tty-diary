@@ -2,6 +2,7 @@ package filer
 
 import (
 	"fmt"
+	"strings"
 	"os"
 	"path/filepath"
 	"time"
@@ -52,5 +53,10 @@ func (f *Filer) FileExistsAndNotEmpty(date string) bool {
 }
 
 func (f *Filer) Filepath(date string) string {
+	if strings.HasPrefix(f.diaryDir, "~") {
+		f.diaryDir = f.diaryDir[1:]
+		f.diaryDir = strings.Join([]string{os.Getenv("HOME"), f.diaryDir}, "")
+	}
+
 	return filepath.Join(f.diaryDir, date+"."+f.fileFormat)
 }

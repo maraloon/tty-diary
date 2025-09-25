@@ -48,7 +48,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case editorFinishedMsg:
 		if m.filer.FileExistsAndNotEmpty(m.cal.CurrentValue()) {
-			m.cal.Colors[m.cal.CurrentValue()] = m.config.NotesColor
+			m.cal.Colors[m.cal.CurrentValue()] = m.config.FileColor
 		}
 
 		m.preview.RenderFile(m.filer.Filepath(m.cal.CurrentValue()))
@@ -86,13 +86,18 @@ func (m mainModel) View() string {
 }
 
 func main() {
-	config := config.ValidateFlags()
+	config, err := config.ValidateFlags()
+	if err != nil {
+		fmt.Println("Something wrong with config file", err)
+		os.Exit(1)
+	}
+	
 	config.DatepickerConfig.HideHelp = true
 	filer := filer.NewFiler(config.DiaryDir, config.FileFormat)
 
 	colors := make(datepicker.Colors)
 	for _, v := range filer.GetDatesWithFiles(time.Now().Year()-1, time.Now().Year()+1) {
-		colors[v] = config.NotesColor
+		colors[v] = config.FileColor
 	}
 
 	cal := datepicker.InitModel(config.DatepickerConfig, colors)
