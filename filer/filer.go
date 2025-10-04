@@ -2,9 +2,9 @@ package filer
 
 import (
 	"fmt"
-	"strings"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 

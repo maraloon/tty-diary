@@ -1,13 +1,24 @@
 # TTY diary
 
-just date selector with `selected date file preview` and editing it in `$EDITOR`
+- run it, select date with [datepicker](https://github.com/maraloon/datepicker), write something in your `$EDITOR`, exit
+- if you add time (ex: `01:15 text`) at start of string, get notification
+
+## Install
+
+### manualy:
+
+```bash
+git clone git@github.com:maraloon/tty-diary.git
+cd tty-diary
+go install ./...
+```
 
 
-## TODO:
-- [x] config file
-- [ ] rewrite my `notes-alarm` bash script to go as `tty-diary-daemon`
-- [ ] write README
+## Usage
 
+- `diary` for calling TUI
+
+- add `* * * * * diary-notify` cron job to get notifications
 
 ## Config file
 

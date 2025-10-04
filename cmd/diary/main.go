@@ -91,7 +91,7 @@ func main() {
 		fmt.Println("Something wrong with config file", err)
 		os.Exit(1)
 	}
-	
+
 	config.DatepickerConfig.HideHelp = true
 	filer := filer.NewFiler(config.DiaryDir, config.FileFormat)
 
