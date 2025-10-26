@@ -3,6 +3,9 @@
 - run it, select date with [datepicker](https://github.com/maraloon/datepicker), write something in your `$EDITOR`, exit
 - if you add time (ex: `01:15 text`) at start of string, get notification
 
+
+![demo gif](readme/demo.gif) 
+
 ## Install
 
 ### manualy:
