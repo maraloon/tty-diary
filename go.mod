@@ -5,7 +5,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/glamour v0.10.0
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
-	github.com/maraloon/datepicker v1.2.3
+	github.com/maraloon/datepicker v0.0.3
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	golang.org/x/term v0.31.0
@@ -50,7 +50,5 @@ require (
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 )
-
-replace github.com/maraloon/datepicker => /home/mara/code/projects/datepicker
 
 go 1.24.6
